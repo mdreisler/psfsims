@@ -299,4 +299,31 @@ if __name__ == "__main__":
         non_d_fluorophore_params=non_d_fluro_params,
     )
 
+save_sim = True
+only_2d = False
+
+if save_sim:
+        import uuid
+
+        sim_id = str(uuid.uuid4())
+        df.sort_values(by=["frame", "z"], inplace=True)
+        df.to_csv(f"simulation_{sim_id}.csv")
+        print(df.head())
+        if only_2d:
+            tif.imsave(
+                f"simulation_{sim_id}.tif",
+                image4d[:, :, int(confine_to_z_plane), :]
+                .transpose(2, 0, 1)
+                .astype(np.int16),
+                imagej=True,
+                metadata={"axes": "TYX"},
+            )
+
+        else:
+            tif.imsave(
+                f"simulation_{sim_id}.tif",
+                image4d.transpose(3, 2, 0, 1).astype(np.int16),
+                imagej=True,
+                metadata={"axes": "TZYX"},
+            )
     
