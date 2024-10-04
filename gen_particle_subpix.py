@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import ndimage as ndi
-from matplotlib.animation import FuncAnimation
 import imageio
 import os
 import json
@@ -9,11 +8,7 @@ import tifffile as tif
 from skimage import io
 from subpix import subpix_signals
 from tqdm import tqdm
-from minmass_test import eval_locate
 import pandas as pd
-
-
-# Uses tppappenv as environment
 
 
 def measure_SNR_subpix(image4d, pos, frame):
@@ -247,10 +242,6 @@ def gen_particle_sim(
             )
             pos_ex = None
         image4d[:, :, :, frame] = pic
-
-        print(pos[:, :, frame].shape)
-    "pick out pos args from image4d"
-    # snr_sim = measure_SNR_subpix(image4d, pos, frame)
     snr_sim = [0, 0]
     return image4d, pos, background, ss_list, np.mean(snr_sim), df
 
@@ -287,10 +278,6 @@ if __name__ == "__main__":
     #    "density": 0.5,
     # }
 
-    eval_score = False
-    plot_sim = True
-    save_sim = True
-    only_2d = False
 
     image4d, pos, background, ss_list, snr_sim, df = gen_particle_sim(
         n_p=n_p,
@@ -312,70 +299,4 @@ if __name__ == "__main__":
         non_d_fluorophore_params=non_d_fluro_params,
     )
 
-    if save_sim:
-        import uuid
-
-        sim_id = str(uuid.uuid4())
-        df.sort_values(by=["frame", "z"], inplace=True)
-        df.to_csv(f"simulation_gputrack{sim_id}.csv")
-        print(df.head())
-        if only_2d:
-            tif.imsave(
-                f"simulation_gputrack{sim_id}.tif",
-                image4d[:, :, int(confine_to_z_plane), :]
-                .transpose(2, 0, 1)
-                .astype(np.int16),
-                imagej=True,
-                metadata={"axes": "TYX"},
-            )
-
-        else:
-            tif.imsave(
-                f"simulation_gputrack{sim_id}.tif",
-                image4d.transpose(3, 2, 0, 1).astype(np.int16),
-                imagej=True,
-                metadata={"axes": "TZYX"},
-            )
-
-    if eval_score:
-        snr_limit = 3.0
-        print(snr_sim)
-        precision, recall, meanmass, stdmass, loc_error = eval_locate(
-            0,
-            image4d[:, :, 25, :].transpose(2, 0, 1),
-            pos,
-            signal_strength,
-            sigma_noise,
-            snr_limit,
-            snr_sim=snr_sim,
-            n_particles=n_p,
-            save_name="subpixtests",
-            subpix=True,
-            plot=True,
-        )
-        if precision + recall == 0:
-            f1 = 0
-        else:
-            f1 = 2 * (precision * recall) / (precision + recall)
-
-    if plot_sim:
-        fig, ax = plt.subplots(1, 1, figsize=(7, 7))
-        for i in range(n_steps):
-            ax.imshow(
-                image4d[:, :, int(fov_dimz / 2), i],
-                cmap="gray",
-                vmin=np.min(image4d),
-                vmax=np.max(image4d),
-            )
-            plt.pause(0.05)
-
-    # fig, ax = plt.subplots(1, 1, figsize=(7, 7))
-    # for i in range(n_steps):
-    #     "make a loop through the z axis and plot the image"
-    #     ax.imshow(
-    #         image4d[:, :, int(fov_dimz / 2), i],
-    #         cmap="gray",
-    #         vmin=np.min(image4d),
-    #         vmax=np.max(image4d),
-    #     )
-    #     plt.pause(0.05)
+    

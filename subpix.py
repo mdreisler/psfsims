@@ -1,4 +1,5 @@
 import numpy as np
+
 def subpix_signals(pos, sigmas, picture = None, intensities = None, normalize = False):
     npart = pos.shape[0]
     ndim = pos.shape[1]
